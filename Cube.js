@@ -6,6 +6,9 @@ class Cube {
         this.uvBuffer = null;
         this.texture0 = null;
 
+        this.color = [1.0, 1.0, 1.0, 1.0];
+        this.solidColorWeight = 1.0;
+
         this.position = new Vector3([0, 0, 0]);
         this.rotation = new Vector3([0, 0, 0]);
         this.scale = new Vector3([1, 1, 1]);
@@ -144,6 +147,11 @@ class Cube {
         gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(a_UV);
+
+        var rgba = this.color;
+        gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
+
+        gl.uniform1f(u_ColorWeight, this.solidColorWeight);
 
         gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 3);
     }

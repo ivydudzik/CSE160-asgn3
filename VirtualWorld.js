@@ -29,9 +29,7 @@ var FSHADER_SOURCE = `
   void main() {
     vec4 image0 = texture2D(u_Texture0, v_UV);
 
-    gl_FragColor = image0; (u_FragColor * u_ColorWeight) + ((1.0 - u_ColorWeight) * image0);
-    
-    // gl_FragColor = vec4(v_UV, 1.0, 1.0);
+    gl_FragColor = (u_FragColor * u_ColorWeight) + ((1.0 - u_ColorWeight) * image0);
   }
   `;
 
@@ -45,7 +43,7 @@ let u_ProjectionMatrix;
 let u_ViewMatrix;
 let a_UV;
 let u_Texture0;
-let u_ColorWeight = 1.0;
+let u_ColorWeight;
 
 let cubes = [];
 let camera;
@@ -92,6 +90,13 @@ function connectVariablesToGLSL() {
   u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
   if (!u_FragColor) {
     console.log('Failed to get the storage location of u_FragColor');
+    return;
+  }
+
+  // Get the storage location of u_ColorWeight
+  u_ColorWeight = gl.getUniformLocation(gl.program, 'u_ColorWeight');
+  if (!u_ColorWeight) {
+    console.log('Failed to get the storage location of u_ColorWeight');
     return;
   }
 
@@ -169,6 +174,7 @@ function main() {
   var imagePath = './Sunspots.png';
   cubes.push(new Cube());
   cubes[0].setImage(gl, imagePath, u_Texture0);
+  cubes[0].color = [1.0, 1.0, 1.0, 1.0];
 
   requestAnimationFrame(tick);
 }

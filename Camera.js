@@ -24,6 +24,6 @@ class Camera {
             ...this.up.elements
         );
 
-        this.projectionMatrix.setPerspective(50, this.aspect, 0.01, 10);
+        this.projectionMatrix.setPerspective(60, this.aspect, 0.01, 1000);
     }
 }
