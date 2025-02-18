@@ -10,7 +10,7 @@ class Cube {
         this.solidColorWeight = 1.0;
 
         this.position = new Vector3([0, 0, 0]);
-        this.rotation = new Vector3([0, 0, 0]);
+        this.rotation = new Vector3([0, 1, 0]);
         this.scale = new Vector3([1, 1, 1]);
         this.modelMatrix = new Matrix4();
 

@@ -164,6 +164,7 @@ function main() {
 
   // Register function (event handler) to be called on a mouse press
   canvas.onclick = click;
+  document.onkeydown = keydown;
   canvas.onmousemove = function (ev) { if (ev.buttons == 1) { click(ev) } };
 
   // Specify the color for clearing <canvas>
@@ -175,6 +176,7 @@ function main() {
   cubes.push(new Cube());
   cubes[0].setImage(gl, imagePath, u_Texture0);
   cubes[0].color = [1.0, 1.0, 1.0, 1.0];
+  cubes[0].solidColorWeight = 0.5;
 
   requestAnimationFrame(tick);
 }
@@ -192,6 +194,17 @@ function updatePerformanceIndicator(frameStartTime) {
 
 function click(ev) {
 
+}
+
+function keydown(ev) {
+  switch (ev.keyCode) {
+    case 87: camera.moveForward(); console.log("keydown!"); break;
+    case 65: camera.moveLeft(); break;
+    case 68: camera.moveRight(); break;
+    case 83: camera.moveBackwards(); break;
+    case 81: camera.panHorizontal(1); break;
+    case 69: camera.panHorizontal(-1); break;
+  }
 }
 
 function convertCoordinatesEventToGL(ev) {
