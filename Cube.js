@@ -22,8 +22,7 @@ class Cube {
 
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-        // grab pntr to shdr unifrnm var
-        const u_Texture0 = gl.getUniformLocation(gl.program, "u_Texture0");
+        // check pntr to shdr unifrnm var
         if (u_Texture0 < 0) {
             console.warn("could not find uniform location");
         }
@@ -111,15 +110,6 @@ class Cube {
 
     render(gl, camera) {
         this.calculateMatrix();
-
-        const a_Position = gl.getAttribLocation(gl.program, "a_Position");
-        const a_UV = gl.getAttribLocation(gl.program, "a_UV");
-        const u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
-        const u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
-        const u_ProjectionMatrix = gl.getUniformLocation(
-            gl.program,
-            "u_ProjectionMatrix"
-        );
 
         gl.uniformMatrix4fv(u_ModelMatrix, false, this.modelMatrix.elements);
         gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMatrix.elements);

@@ -3,7 +3,7 @@
 var VSHADER_SOURCE = `
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_ViewMatrix;
-  uniform mat4 u_ProjMatrix;
+  uniform mat4 u_ProjectionMatrix;
 
   attribute vec4 a_Position;
   attribute vec2 a_UV;
@@ -11,7 +11,7 @@ var VSHADER_SOURCE = `
   varying vec2 v_UV;
   void main() {
     v_UV = a_UV;
-    gl_Position = u_ViewMatrix * u_ModelMatrix * u_ProjMatrix * a_Position;
+    gl_Position = u_ViewMatrix * u_ModelMatrix * u_ProjectionMatrix * a_Position;
   }`
 
 // Fragment shader program
@@ -29,9 +29,9 @@ var FSHADER_SOURCE = `
   void main() {
     vec4 image0 = texture2D(u_Texture0, v_UV);
 
-    gl_FragColor = (u_FragColor * u_ColorWeight) + ((1.0 - u_ColorWeight) * image0);
-
-    gl_FragColor = vec4(1.0, vUv.x, vUv.y, 1.0);
+    gl_FragColor = image0; (u_FragColor * u_ColorWeight) + ((1.0 - u_ColorWeight) * image0);
+    
+    // gl_FragColor = vec4(v_UV, 1.0, 1.0);
   }
   `;
 
@@ -41,7 +41,7 @@ let gl;
 let a_Position;
 let u_FragColor;
 let u_ModelMatrix;
-let u_ProjMatrix;
+let u_ProjectionMatrix;
 let u_ViewMatrix;
 let a_UV;
 let u_Texture0;
@@ -103,9 +103,9 @@ function connectVariablesToGLSL() {
   }
 
   // Get the storage location of u_ModelMatrix
-  u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
-  if (!u_ProjMatrix) {
-    console.log('Failed to get the storage location of u_ProjMatrix');
+  u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
+  if (!u_ProjectionMatrix) {
+    console.log('Failed to get the storage location of u_ProjectionMatrix');
     return;
   }
 
@@ -124,7 +124,7 @@ function connectVariablesToGLSL() {
   }
 
   // Get the storage location of a_UV
-  a_UV = gl.getUniformLocation(gl.program, 'a_UV');
+  a_UV = gl.getAttribLocation(gl.program, 'a_UV');
   if (!a_UV) {
     console.log('Failed to get the storage location of a_UV');
     return;
@@ -168,7 +168,7 @@ function main() {
 
   var imagePath = './Sunspots.png';
   cubes.push(new Cube());
-  cubes[0].setImage(gl, imagePath, 0);
+  cubes[0].setImage(gl, imagePath, u_Texture0);
 
   requestAnimationFrame(tick);
 }
