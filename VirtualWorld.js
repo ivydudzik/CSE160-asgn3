@@ -11,7 +11,7 @@ var VSHADER_SOURCE = `
   varying vec2 v_UV;
   void main() {
     v_UV = a_UV;
-    gl_Position = u_ViewMatrix * u_ModelMatrix * u_ProjectionMatrix * a_Position;
+    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * a_Position;
   }`
 
 // Fragment shader program
@@ -172,11 +172,7 @@ function main() {
 
   camera = new Camera();
 
-  var imagePath = './Sunspots.png';
-  cubes.push(new Cube());
-  cubes[0].setImage(gl, imagePath, u_Texture0);
-  cubes[0].color = [1.0, 1.0, 1.0, 1.0];
-  cubes[0].solidColorWeight = 0.5;
+  createWorldObjects();
 
   requestAnimationFrame(tick);
 }
@@ -198,12 +194,12 @@ function click(ev) {
 
 function keydown(ev) {
   switch (ev.keyCode) {
-    case 87: camera.moveForward(); console.log("keydown!"); break;
+    case 87: camera.moveForward(); break;
     case 65: camera.moveLeft(); break;
     case 68: camera.moveRight(); break;
     case 83: camera.moveBackwards(); break;
-    case 81: camera.panHorizontal(1); break;
-    case 69: camera.panHorizontal(-1); break;
+    case 81: camera.panHorizontal(.1); break;
+    case 69: camera.panHorizontal(-.1); break;
   }
 }
 
@@ -218,6 +214,13 @@ function convertCoordinatesEventToGL(ev) {
   return ([x, y]);
 }
 
+function createWorldObjects() {
+  var imagePath = './Sunspots.png';
+  cubes.push(new Cube());
+  cubes[0].setImage(gl, imagePath, u_Texture0);
+  cubes[0].color = [1.0, 1.0, 1.0, 1.0];
+  cubes[0].solidColorWeight = 0.0;
+}
 
 function renderScene() {
   let tickStartTime = performance.now();
