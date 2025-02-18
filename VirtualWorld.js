@@ -1,28 +1,54 @@
-// ColoredPoint.js (c) 2012 matsuda
+// HelloCube.js (c) 2012 matsuda
 // Vertex shader program
 var VSHADER_SOURCE = `
-attribute vec2 a_Position; 
-attribute vec3 a_Color; 
-varying vec3 v_Color; 
-void main() { 
-v_Color = a_Color; 
-gl_Position = vec4(a_Position, 0.0, 1.0); 
-}
-`
+  uniform mat4 u_ModelMatrix;
+  uniform mat4 u_ViewMatrix;
+  uniform mat4 u_ProjMatrix;
+
+  attribute vec4 a_Position;
+  attribute vec2 a_UV;
+
+  varying vec2 v_UV;
+  void main() {
+    v_UV = a_UV;
+    gl_Position = u_ViewMatrix * u_ModelMatrix * u_ProjMatrix * a_Position;
+  }`
 
 // Fragment shader program
 var FSHADER_SOURCE = `
-precision mediump float;
-varying vec3 v_Color; 
-void main() { 
-gl_FragColor = vec4(v_Color, 1.0); 
-}
-`
+  precision mediump float;
+  
+  uniform sampler2D u_Texture0;
+
+  uniform vec4 u_FragColor;
+
+  uniform float u_ColorWeight;
+
+  varying vec2 v_UV;
+
+  void main() {
+    vec4 image0 = texture2D(u_Texture0, v_UV);
+
+    gl_FragColor = (u_FragColor * u_ColorWeight) + ((1.0 - u_ColorWeight) * image0);
+
+    gl_FragColor = vec4(1.0, vUv.x, vUv.y, 1.0);
+  }
+  `;
 
 // Global Vars
 let canvas;
 let gl;
+let a_Position;
 let u_FragColor;
+let u_ModelMatrix;
+let u_ProjMatrix;
+let u_ViewMatrix;
+let a_UV;
+let u_Texture0;
+let u_ColorWeight = 1.0;
+
+let cubes = [];
+let camera;
 
 // INIT FUNCTIONS //
 function setupWebGL() {
@@ -35,6 +61,15 @@ function setupWebGL() {
     console.log('Failed to get the rendering context for WebGL');
     return;
   }
+
+  gl.viewport(0, 0, canvas.width, canvas.height);
+
+  window.addEventListener("resize", (e) => {
+    gl.canvas.width = window.innerWidth;
+    gl.canvas.height = window.innerHeight;
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  });
 
   gl.enable(gl.DEPTH_TEST);
 }
@@ -53,14 +88,63 @@ function connectVariablesToGLSL() {
     return;
   }
 
-  // Get the storage location of a_Color
-  a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-  if (a_Color < 0) {
-    console.log('Failed to get the storage location of a_Color');
+  // Get the storage location of u_FragColor
+  u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+  if (!u_FragColor) {
+    console.log('Failed to get the storage location of u_FragColor');
     return;
   }
 
+  // Get the storage location of u_ModelMatrix
+  u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+  if (!u_ModelMatrix) {
+    console.log('Failed to get the storage location of u_ModelMatrix');
+    return;
+  }
 
+  // Get the storage location of u_ModelMatrix
+  u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
+  if (!u_ProjMatrix) {
+    console.log('Failed to get the storage location of u_ProjMatrix');
+    return;
+  }
+
+  // Get the storage location of u_ModelMatrix
+  u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
+  if (!u_ViewMatrix) {
+    console.log('Failed to get the storage location of u_ViewMatrix');
+    return;
+  }
+
+  // Get the storage location of u_Texture0
+  u_Texture0 = gl.getUniformLocation(gl.program, 'u_Texture0');
+  if (!u_Texture0) {
+    console.log('Failed to get the storage location of u_Texture0');
+    return;
+  }
+
+  // Get the storage location of a_UV
+  a_UV = gl.getUniformLocation(gl.program, 'a_UV');
+  if (!a_UV) {
+    console.log('Failed to get the storage location of a_UV');
+    return;
+  }
+}
+
+// HTML FUNCTIONS //
+
+// UI Globals
+let g_viewAngleY = 45;
+let g_viewAngleX = -5;
+
+// Set up actions for HTML UI elements
+function addActionsForHtmlUI() {
+  // Button Events
+  document.getElementById('animOn').onclick = function () { };
+
+  // Scene Manipulation Sliders
+  document.getElementById('viewAngleYSlide').addEventListener("mousemove", function () { g_viewAngleY = this.value; renderScene(); });
+  document.getElementById('viewAngleXSlide').addEventListener("mousemove", function () { g_viewAngleX = this.value; renderScene(); });
 }
 
 function main() {
@@ -70,56 +154,61 @@ function main() {
   // Set up GLSL shader program and connect vars
   connectVariablesToGLSL();
 
-  // === VERTEX BUFFER SETUP IN JAVASCRIPT 
+  // Add HTML UI Actions
+  addActionsForHtmlUI();
+
+  // Register function (event handler) to be called on a mouse press
+  canvas.onclick = click;
+  canvas.onmousemove = function (ev) { if (ev.buttons == 1) { click(ev) } };
+
+  // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // -1.0, 1.0,
-  //   1.0, 1.0,
-  //   0.0, -1.0,
-  let vertices = new Float32Array([
-    -1.0, 1.0,
-    1.0, 1.0,
-    1.0, -1.0,
+  camera = new Camera();
 
-    -1.0, -1.0,
-    -1.0, 1.0,
-    1.0, -1.0,
+  var imagePath = './Sunspots.png';
+  cubes.push(new Cube());
+  cubes[0].setImage(gl, imagePath, 0);
 
-    0.0, 0.0, 0.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-
-    0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0,
-    0.0, 0.0, 1.0,
-
-
-  ]);
-
-  // Create a buffer object
-  var vertexBuffer = gl.createBuffer();
-  if (!vertexBuffer) {
-    console.log('Failed to create the vertexBuffer buffer object');
-    return -1;
-  }
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(a_Position);
-
-  // // Create a buffer object
-  // var colorBuffer = gl.createBuffer();
-  // if (!colorBuffer) {
-  //   console.log('Failed to create the colorBuffer buffer object');
-  //   return -1;
-  // }
-  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 0, 48);
-  gl.enableVertexAttribArray(a_Color);
-
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  requestAnimationFrame(tick);
 }
+
+function tick() {
+  renderScene();
+
+  requestAnimationFrame(tick);
+}
+
+function updatePerformanceIndicator(frameStartTime) {
+  let perfText = document.getElementById('performanceText');
+  perfText.innerHTML = "MS: " + Math.floor((performance.now() - frameStartTime) * 10) / 10 + " | FPS: " + Math.floor(10000 / (performance.now() - frameStartTime) / 10);
+}
+
+function click(ev) {
+
+}
+
+function convertCoordinatesEventToGL(ev) {
+  var x = ev.clientX; // x coordinate of a mouse pointer
+  var y = ev.clientY; // y coordinate of a mouse pointer
+  var rect = ev.target.getBoundingClientRect();
+
+  x = ((x - rect.left) - canvas.width / 2) / (canvas.width / 2);
+  y = (canvas.height / 2 - (y - rect.top)) / (canvas.height / 2);
+
+  return ([x, y]);
+}
+
+
+function renderScene() {
+  let tickStartTime = performance.now();
+
+  // Clear <canvas>
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+
+  cubes[0].render(gl, camera);
+
+  updatePerformanceIndicator(tickStartTime)
+}
+

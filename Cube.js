@@ -1,56 +1,160 @@
 class Cube {
     constructor() {
-        this.type = "cube";
-        this.color = [1.0, 1.0, 1.0, 1.0];
-        this.matrix = new Matrix4();
+        this.vertices = null;
+        this.uvs = null;
+        this.vertexBuffer = null;
+        this.uvBuffer = null;
+        this.texture0 = null;
+
+        this.position = new Vector3([0, 0, 0]);
+        this.rotation = new Vector3([0, 0, 0]);
+        this.scale = new Vector3([1, 1, 1]);
+        this.modelMatrix = new Matrix4();
+
+        this.setVertices();
+        this.setUvs();
     }
 
-    render() {
-        var rgba = this.color;
+    setImage(gl, imagePath) {
+        if (this.texture0 === null) {
+            this.texture0 = gl.createTexture();
+        }
 
-        // Pass the color of a point to u_FragColor variable
-        gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-        // Pass the model matrix u_ModelMatrix variable
-        gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
+        // grab pntr to shdr unifrnm var
+        const u_Texture0 = gl.getUniformLocation(gl.program, "u_Texture0");
+        if (u_Texture0 < 0) {
+            console.warn("could not find uniform location");
+        }
 
-        // Front
-        drawTriangle3D([0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0])
-        drawTriangle3D([0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0])
+        const img = new Image();
 
-        // Darken Top Color
-        gl.uniform4f(u_FragColor, rgba[0] * 0.9, rgba[1] * 0.9, rgba[2] * 0.9, rgba[3]);
+        img.onload = () => {
+            gl.activeTexture(gl.TEXTURE0);
 
-        // Top (video)
-        drawTriangle3D([0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-        drawTriangle3D([0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0])
+            gl.bindTexture(gl.TEXTURE_2D, this.texture0);
 
-        // Darken Bottom Color
-        gl.uniform4f(u_FragColor, rgba[0] * 0.8, rgba[1] * 0.8, rgba[2] * 0.8, rgba[3]);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
-        // Bottom
-        drawTriangle3D([0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0])
-        drawTriangle3D([0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0])
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                img
+            );
 
-        // Darken Left Color
-        gl.uniform4f(u_FragColor, rgba[0] * 0.8, rgba[1] * 0.8, rgba[2] * 0.8, rgba[3]);
+            // set uniform to texture slot (match 32)
+            gl.uniform1i(u_Texture0, 0);
+        };
 
-        // Left
-        drawTriangle3D([0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0])
-        drawTriangle3D([0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0])
+        img.crossOrigin = "anonymous";
+        img.src = imagePath;
+    }
 
-        // Darken Right Color
-        gl.uniform4f(u_FragColor, rgba[0] * 0.7, rgba[1] * 0.7, rgba[2] * 0.7, rgba[3]);
+    setVertices() {
+        // prettier-ignore
+        this.vertices = new Float32Array([
+            //FRONT
+            -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5,
+            -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5,
+            //LEFT
+            -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5,
+            -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5,
+            //RIGHT
+            0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5,
+            0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5,
+            //TOP
+            -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+            -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5,
+            //BACK
+            0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5,
+            -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5,
+            //BOTTOM
+            -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5,
+            -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5
+        ]);
+    }
 
-        // Right 
-        drawTriangle3D([1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0])
-        drawTriangle3D([1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0])
+    setUvs() {
+        // prettier-ignore
+        this.uvs = new Float32Array([
+            // FRONT
+            0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1,
+            // LEFT
+            0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1,
+            // RIGHT
+            0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1,
+            // TOP
+            1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0,
+            // BACK
+            0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
+            // BOTTOM
+            0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1,
+        ]);
+    }
 
-        // Darken Back Color
-        gl.uniform4f(u_FragColor, rgba[0] * 0.6, rgba[1] * 0.6, rgba[2] * 0.6, rgba[3]);
+    calculateMatrix() {
+        let [x, y, z] = this.position.elements;
+        let [rx, ry, rz] = this.rotation.elements;
+        let [sx, sy, sz] = this.scale.elements;
 
-        // Back 
-        drawTriangle3D([1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0])
-        drawTriangle3D([1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0])
+        this.modelMatrix
+            .setTranslate(x, y, z)
+            .rotate(rx, 1, 0, 0)
+            .rotate(ry, 0, 1, 0)
+            .rotate(rz, 0, 0, 1)
+            .scale(sx, sy, sz);
+    }
+
+    render(gl, camera) {
+        this.calculateMatrix();
+
+        const a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        const a_UV = gl.getAttribLocation(gl.program, "a_UV");
+        const u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
+        const u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
+        const u_ProjectionMatrix = gl.getUniformLocation(
+            gl.program,
+            "u_ProjectionMatrix"
+        );
+
+        gl.uniformMatrix4fv(u_ModelMatrix, false, this.modelMatrix.elements);
+        gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMatrix.elements);
+        gl.uniformMatrix4fv(
+            u_ProjectionMatrix,
+            false,
+            camera.projectionMatrix.elements
+        );
+
+        if (this.vertexBuffer === null) {
+            this.vertexBuffer = gl.createBuffer();
+            if (!this.vertexBuffer) {
+                console.log("Failed to create the buffer object");
+                return -1;
+            }
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Position);
+
+        if (this.uvBuffer === null) {
+            this.uvBuffer = gl.createBuffer();
+            if (!this.uvBuffer) {
+                console.log("Failed to create the buffer object");
+                return -1;
+            }
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_UV);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 3);
     }
 }
