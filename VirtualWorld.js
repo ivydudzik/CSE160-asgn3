@@ -60,6 +60,9 @@ let u_ColorWeight;
 
 let skyCube;
 let groundCube;
+let groundCube2;
+let groundCube3;
+let groundCube4;
 let wallCubes = [];
 let meteorCubes = [];
 let meteorExplosionCubes = [];
@@ -184,12 +187,6 @@ let g_viewAngleX = -5;
 
 // Set up actions for HTML UI elements
 function addActionsForHtmlUI() {
-  // Button Events
-  document.getElementById('animOn').onclick = function () { };
-
-  // Scene Manipulation Sliders
-  document.getElementById('viewAngleYSlide').addEventListener("mousemove", function () { g_viewAngleY = this.value; renderScene(); });
-  document.getElementById('viewAngleXSlide').addEventListener("mousemove", function () { g_viewAngleX = this.value; renderScene(); });
 }
 
 function main() {
@@ -269,6 +266,8 @@ function placeBlock() {
   console.log(targetCoord);
   let wall = new Cube();
   wall.position = new Vector3([targetCoord.elements[0], targetCoord.elements[1], targetCoord.elements[2]]);
+  wall.color = [0.35, 0.25, 0.15, 1.0];
+  wall.solidColorWeight = Math.random() * 0.75;
   wallCubes.push(wall);
   console.log("added block at ", targetCoord.elements[0], targetCoord.elements[1], targetCoord.elements[2]);
 }
@@ -315,22 +314,58 @@ function createWorldObjects() {
 
   // SKY //
   skyCube = new Cube();
-  skyCube.color = [0.65, 0.85, 1.0, 1.0];
-  skyCube.solidColorWeight = 0.0;
+  skyCube.color = [0.1, 0.1, 0.1, 1.0];
+  skyCube.solidColorWeight = 0.5;
   skyCube.scale.mul(999);
 
   // GROUND //
   groundCube = new Cube();
-  groundCube.color = [0.75, 0.65, 0.35, 1.0];
+  groundCube.color = [0.35, 0.25, 0.15, 1.0];
   groundCube.solidColorWeight = 1.0;
   // Flatten and widen floor
   groundCube.scale.elements[0] *= 32;
   groundCube.scale.elements[1] *= 0.01;
   groundCube.scale.elements[2] *= 32;
-  // Move floor down 1 unit, diagonally 16 units
-  groundCube.position.elements[0] = 16;
-  groundCube.position.elements[1] = -0.505;
-  groundCube.position.elements[2] = 16;
+  // Move floor 
+  groundCube.position.elements[0] = 16 - 0.5;
+  groundCube.position.elements[1] = 4.505;
+  groundCube.position.elements[2] = -16 - 0.5;
+
+  groundCube2 = new Cube();
+  groundCube2.color = [0.35, 0.25, 0.15, 1.0];
+  groundCube2.solidColorWeight = 1.0;
+  // Flatten and widen floor
+  groundCube2.scale.elements[0] *= 32;
+  groundCube2.scale.elements[1] *= 0.01;
+  groundCube2.scale.elements[2] *= 96;
+  // Move floor 
+  groundCube2.position.elements[0] = 48 - 0.5;
+  groundCube2.position.elements[1] = 4.505;
+  groundCube2.position.elements[2] = 16 - 0.5;
+
+  groundCube3 = new Cube();
+  groundCube3.color = [0.35, 0.25, 0.15, 1.0];
+  groundCube3.solidColorWeight = 1.0;
+  // Flatten and widen floor
+  groundCube3.scale.elements[0] *= 32;
+  groundCube3.scale.elements[1] *= 0.01;
+  groundCube3.scale.elements[2] *= 32;
+  // Move floor 
+  groundCube3.position.elements[0] = 16 - 0.5;
+  groundCube3.position.elements[1] = 4.505;
+  groundCube3.position.elements[2] = 48 - 0.5;
+
+  groundCube4 = new Cube();
+  groundCube4.color = [0.35, 0.25, 0.15, 1.0];
+  groundCube4.solidColorWeight = 1.0;
+  // Flatten and widen floor
+  groundCube4.scale.elements[0] *= 32;
+  groundCube4.scale.elements[1] *= 0.01;
+  groundCube4.scale.elements[2] *= 96;
+  // Move floor 
+  groundCube4.position.elements[0] = -16 - 0.5;
+  groundCube4.position.elements[1] = 4.505;
+  groundCube4.position.elements[2] = 16 - 0.5;
 
   // Map
   // In its own file Map.js
@@ -343,6 +378,9 @@ function createWorldObjects() {
       while (wallHeight > 0) {
         let wall = new Cube();
         wall.position = new Vector3([i, wallHeight - 1, j]);
+        wall.color = [0.35, 0.25, 0.15, 1.0];
+        let centerness = (Math.abs(15.5 - i) / 15.5 + Math.abs(15.5 - j) / 15.5) / 2
+        wall.solidColorWeight = centerness * 0.9 + Math.random() * 0.1;
         wallCubes.push(wall);
         // console.log("wall at ", i, " , ", wallHeight - 1, " , ", j);
         wallHeight--;
@@ -382,6 +420,9 @@ function renderScene() {
   // Select debug texture in shader uniform (will be covered by colorweight)
   gl.uniform1i(u_SelectedTexture, 2);
   groundCube.render(gl, camera);
+  groundCube2.render(gl, camera);
+  groundCube3.render(gl, camera);
+  groundCube4.render(gl, camera);
 
   // Select sunspot texture in shader uniform 
   gl.uniform1i(u_SelectedTexture, 0);

@@ -1,5 +1,5 @@
 class Camera {
-    constructor(position = [-1, 5, -1], target = [6, 0, 6]) {
+    constructor(position = [-1, 8, -1], target = [7, 0, 7]) {
         this.position = new Vector3(position);
         this.goalPosition = new Vector3(position);
         this.fov = 60
