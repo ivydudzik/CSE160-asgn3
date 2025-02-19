@@ -4,13 +4,12 @@ class Cube {
         this.uvs = null;
         this.vertexBuffer = null;
         this.uvBuffer = null;
-        this.texture0 = null;
 
         this.color = [1.0, 1.0, 1.0, 1.0];
-        this.solidColorWeight = 1.0;
+        this.solidColorWeight = 0.0;
 
         this.position = new Vector3([0, 0, 0]);
-        this.rotation = new Vector3([0, 1, 0]);
+        this.rotation = new Vector3([0, 0, 0]);
         this.scale = new Vector3([1, 1, 1]);
         this.modelMatrix = new Matrix4();
 
@@ -18,43 +17,9 @@ class Cube {
         this.setUvs();
     }
 
-    setImage(gl, imagePath) {
-        if (this.texture0 === null) {
-            this.texture0 = gl.createTexture();
-        }
-
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-        // check pntr to shdr unifrnm var
-        if (u_Texture0 < 0) {
-            console.warn("could not find uniform location");
-        }
-
-        const img = new Image();
-
-        img.onload = () => {
-            gl.activeTexture(gl.TEXTURE0);
-
-            gl.bindTexture(gl.TEXTURE_2D, this.texture0);
-
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                img
-            );
-
-            // set uniform to texture slot (match 32)
-            gl.uniform1i(u_Texture0, 0);
-        };
-
-        img.crossOrigin = "anonymous";
-        img.src = imagePath;
-    }
+    static texture0 = null;
+    static texture1 = null;
+    static texture2 = null;
 
     setVertices() {
         // prettier-ignore
@@ -154,5 +119,120 @@ class Cube {
         gl.uniform1f(u_ColorWeight, this.solidColorWeight);
 
         gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 3);
+    }
+
+
+    static setTexture0(gl, imagePath) {
+        if (Cube.texture0 === null) {
+            Cube.texture0 = gl.createTexture();
+        }
+
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+        // check pntr to shdr unifrnm var
+        if (u_Texture0 < 0) {
+            console.warn("could not find uniform location");
+        }
+
+        const img = new Image();
+
+        img.onload = () => {
+            gl.activeTexture(gl.TEXTURE0);
+
+            gl.bindTexture(gl.TEXTURE_2D, Cube.texture0);
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                img
+            );
+
+            // set uniform to texture slot (match 32)
+            gl.uniform1i(u_Texture0, 0);
+        };
+
+        img.crossOrigin = "anonymous";
+        img.src = imagePath;
+    }
+
+    static setTexture1(gl, imagePath) {
+        if (Cube.texture1 === null) {
+            Cube.texture1 = gl.createTexture();
+        }
+
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+        // check pntr to shdr unifrnm var
+        if (u_Texture1 < 0) {
+            console.warn("could not find uniform location");
+        }
+
+        const img = new Image();
+
+        img.onload = () => {
+            gl.activeTexture(gl.TEXTURE1);
+
+            gl.bindTexture(gl.TEXTURE_2D, Cube.texture1);
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                img
+            );
+
+            // set uniform to texture slot (match 32)
+            gl.uniform1i(u_Texture1, 1);
+        };
+
+        img.crossOrigin = "anonymous";
+        img.src = imagePath;
+    }
+
+    static setTexture2(gl, imagePath) {
+        if (Cube.texture2 === null) {
+            Cube.texture2 = gl.createTexture();
+        }
+
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+        // check pntr to shdr unifrnm var
+        if (u_Texture2 < 0) {
+            console.warn("could not find uniform location");
+        }
+
+        const img = new Image();
+
+        img.onload = () => {
+            gl.activeTexture(gl.TEXTURE2);
+
+            gl.bindTexture(gl.TEXTURE_2D, Cube.texture2);
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                img
+            );
+
+            // set uniform to texture slot (match 32)
+            gl.uniform1i(u_Texture2, 2);
+        };
+
+        img.crossOrigin = "anonymous";
+        img.src = imagePath;
     }
 }
